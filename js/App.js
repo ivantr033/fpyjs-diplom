@@ -18,17 +18,17 @@ class App {
    * */
   static initModals() {
     this.modals = {
-      fileUploader: new FileUploaderModal($('.ui.modal.file-uploader-modal').modal({closable: false})),
-      filePreviewer: new PreviewModal($('.ui.modal.uploaded-previewer-modal').modal({closable: false})),
+      fileUploader: new FileUploaderModal($('.ui.modal.file-uploader-modal').modal({ closable: false })[0]),
+      filePreviewer: new PreviewModal($('.ui.modal.uploaded-previewer-modal').modal({ closable: false })[0]),
     }
   }
 
-   /**
-   * Возвращает всплывающее окно
-   * Обращается к объекту App.modals и извлекает
-   * из него свойство modalName:
-   * App.getModal( 'login' ); // извелекает App.modals.login
-   * */
+  /**
+  * Возвращает всплывающее окно
+  * Обращается к объекту App.modals и извлекает
+  * из него свойство modalName:
+  * App.getModal( 'login' ); // извелекает App.modals.login
+  * */
   static getModal(name) {
     return this.modals[name];
   }

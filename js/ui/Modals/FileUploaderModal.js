@@ -2,9 +2,11 @@
  * Класс FileUploaderModal
  * Используется как всплывающее окно для загрузки изображений
  */
-class FileUploaderModal {
-  constructor( element ) {
-
+class FileUploaderModal extends BaseModal {
+  constructor(element) {
+    super(element);
+    this.content = element.querySelector('.content');
+    this.registerEvents();
   }
 
   /**
@@ -16,35 +18,88 @@ class FileUploaderModal {
    * убирает ошибку, если клик был по полю вода
    * отправляет одно изображение, если клик был по кнопке отправки
    */
-  registerEvents(){
+  registerEvents() {
+    const closeButtons = this.element.querySelectorAll('.close, .x.icon');
+    closeButtons.forEach(btn => btn.onclick = () => this.close());
 
+    const sendAllBtn = this.element.querySelector('.send-all');
+    sendAllBtn.onclick = () => this.sendAllImages();
+
+    this.content.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter' && e.target.tagName === 'INPUT') {
+        const container = e.target.closest('.image-preview-container');
+        this.sendImage(container);
+      }
+    });
+
+    this.content.addEventListener('click', (e) => {
+      const target = e.target;
+      const container = target.closest('.image-preview-container');
+
+      if (target.tagName === 'INPUT') {
+        target.parentElement.classList.remove('error');
+      } else if (target.closest('button')) {
+        this.sendImage(container);
+      }
+    });
   }
 
   /**
    * Отображает все полученные изображения в теле всплывающего окна
    */
   showImages(images) {
-
+    const html = images.map(url => this.getImageHTML(url)).join('');
+    this.content.innerHTML = html;
+    this.open();
   }
 
   /**
    * Формирует HTML разметку с изображением, полем ввода для имени файла и кнопкной загрузки
    */
   getImageHTML(item) {
-
+    return `
+      <div class="image-preview-container">
+        <img src="${item}" />
+        <div class="ui action input">
+          <input type="text" placeholder="Путь к файлу...">
+          <button class="ui button"><i class="upload icon"></i></button>
+        </div>
+      </div>`;
   }
 
   /**
    * Отправляет все изображения в облако
    */
   sendAllImages() {
-
+    const containers = this.content.querySelectorAll('.image-preview-container');
+    containers.forEach(container => this.sendImage(container));
   }
 
   /**
    * Валидирует изображение и отправляет его на сервер
    */
   sendImage(imageContainer) {
+    const input = imageContainer.querySelector('input');
+    const path = input.value.trim();
+    const url = imageContainer.querySelector('img').src;
 
+    if (!path) {
+      input.parentElement.classList.add('error');
+      return;
+    }
+
+    input.parentElement.classList.add('disabled');
+
+    Yandex.uploadFile(path, url, (err) => {
+      if (err) {
+        input.parentElement.classList.remove('disabled');
+        console.error("Ошибка загрузки:", err);
+      } else {
+        imageContainer.remove();
+        if (this.content.children.length === 0) {
+          this.close();
+        }
+      }
+    });
   }
 }
